@@ -1,3 +1,15 @@
+import 'package:blinktrack/screens/addprofilescreen.dart';
+import 'package:blinktrack/screens/circlemanage.dart';
+import 'package:blinktrack/screens/createjoinscreen.dart';
+import 'package:blinktrack/screens/loginscreen.dart';
+import 'package:blinktrack/screens/mapScreen.dart';
+import 'package:blinktrack/screens/otp_verificationscreen.dart';
+import 'package:blinktrack/screens/permissionscreen.dart';
+import 'package:blinktrack/screens/settings.dart';
+import 'package:blinktrack/screens/signupscreen.dart';
+import 'package:blinktrack/screens/sosscreen.dart';
+import 'package:blinktrack/screens/splashscreen.dart';
+import 'package:blinktrack/screens/welcomescreen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -31,7 +43,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: CircleManagement(),
     );
   }
 }

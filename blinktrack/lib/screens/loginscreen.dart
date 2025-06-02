@@ -1,0 +1,106 @@
+import 'package:blinktrack/screens/components/appbar.dart';
+import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/theme.dart';
+import 'package:country_code_picker/country_code_picker.dart';
+import 'package:flutter/material.dart';
+
+class Loginscreen extends StatefulWidget {
+  const Loginscreen({super.key});
+
+  @override
+  State<Loginscreen> createState() => _LoginscreenState();
+}
+
+class _LoginscreenState extends State<Loginscreen> {
+  @override
+  Widget build(BuildContext context) {
+    final TextEditingController _number = TextEditingController();
+    String _selectedCountryCode = '+91';
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: const CustomAppBar(),
+      body: Column(
+        children: [
+          SizedBox(
+            height: 50,
+          ),
+          Text(
+            'Welcome Back! ',
+            style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold),
+          ),
+          Text(
+            'Enter your number?',
+            style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold),
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Text('A Code will be sent to sign in',
+              style: TextStyle(color: Colors.black38, fontSize: 12)),
+          const SizedBox(
+            height: 80,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CountryCodePicker(
+                initialSelection: 'IN',
+                showCountryOnly: true,
+                alignLeft: false,
+                onChanged: (country) {
+                  setState(() {
+                    _selectedCountryCode = country.dialCode ?? '+91';
+                  });
+                },
+              ),
+              //const SizedBox(width: 1),
+              SizedBox(
+                width: 180,
+                child: TextFormField(
+                  controller: _number,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your Number',
+                    hintStyle:
+                        const TextStyle(fontSize: 14, color: Colors.grey),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none, // No border line
+                    ),
+                    filled: true,
+                    fillColor: AppColors.textfieldbackground,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 60),
+            child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Button(text: 'Continue')),
+          ),
+        ],
+      ),
+    );
+  }
+}
