@@ -1,9 +1,37 @@
+import 'dart:io';
+
 import 'package:blinktrack/screens/components/button.dart';
 import 'package:blinktrack/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class AddProfileScreen extends StatelessWidget {
+class AddProfileScreen extends StatefulWidget {
   const AddProfileScreen({super.key});
+
+  @override
+  State<AddProfileScreen> createState() => _AddProfileScreenState();
+}
+
+class _AddProfileScreenState extends State<AddProfileScreen> {
+  bool _camerapermission = false;
+  File? _profileImage;
+
+  Future<void> pickImagefromGallery() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> saveImageToDatabase() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -16,16 +44,49 @@ class AddProfileScreen extends StatelessWidget {
               child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                child: CircleAvatar(
-                  radius: 100,
-                  backgroundColor: Colors.transparent,
-                  child: Icon(
-                    Icons.account_circle,
-                    color: AppColors.primary,
-                    size: 200,
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 90,
+                    backgroundColor:
+                        AppColors.primary, // Match avatar background
+                    backgroundImage: _profileImage != null
+                        ? FileImage(_profileImage!)
+                        : null,
+                    child: _profileImage == null
+                        ? Icon(
+                            Icons.person,
+                            color: AppColors.background, // Match icon color
+                            size: 180,
+                          )
+                        : null,
                   ),
-                ),
+                  Positioned(
+                    bottom: 4,
+                    right: 7,
+                    child: InkWell(
+                      onTap: pickImagefromGallery,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.background,
+                        ),
+                        height: 48,
+                        width: 48,
+                        child: Center(
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 32,
+                            color: Colors.black54,
+                            weight:
+                                800, // Only available in Flutter 3.10+, otherwise omit
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(
                 height: 20,
@@ -85,7 +146,10 @@ class AddProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 60.0),
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: Button(text: 'Done'),
+              child: Button(
+                text: 'Done',
+                onPressed: saveImageToDatabase,
+              ),
             ),
           )
         ],

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "359649560707",
+    "project_id": "blinktrack",
+    "storage_bucket": "blinktrack.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:359649560707:android:bf3278050cddaaec31f3b6",
+        "android_client_info": {
+          "package_name": "com.example.blinktrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC916SHqgW9LhlotRdhn-sXzi-h9lYlmvc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

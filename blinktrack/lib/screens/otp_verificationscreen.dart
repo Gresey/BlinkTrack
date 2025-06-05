@@ -1,17 +1,64 @@
 import 'package:blinktrack/screens/components/appbar.dart';
 import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/screens/permissionscreen.dart';
 import 'package:blinktrack/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class OtpVerificationscreen extends StatelessWidget {
-  const OtpVerificationscreen({super.key});
+class OtpVerificationscreen extends StatefulWidget {
+  final String otp;
+  final String number;
+  const OtpVerificationscreen(
+      {super.key, required this.otp, required this.number});
+
+  @override
+  State<OtpVerificationscreen> createState() => _OtpVerificationscreenState();
+}
+
+class _OtpVerificationscreenState extends State<OtpVerificationscreen> {
+  bool _isResending = false;
+  late String _verificationId;
+  final TextEditingController _otpController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _verificationId = widget.otp;
+  }
+
+  Future<void> _resendOtp() async {
+    setState(() {
+      _isResending = true;
+    });
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: widget.number,
+      verificationCompleted: (credential) {},
+      verificationFailed: (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? "Verification failed")),
+        );
+      },
+      codeSent: (verificationId, token) {
+        setState(() {
+          _verificationId = verificationId;
+          _isResending = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('OTP resent!')),
+        );
+      },
+      codeAutoRetrievalTimeout: (verificationId) {
+        setState(() {
+          _verificationId = verificationId;
+          _isResending = false;
+        });
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController _controller = TextEditingController();
-    TextEditingController _controller2 = TextEditingController();
-    TextEditingController _controller3 = TextEditingController();
-    TextEditingController _controller4 = TextEditingController();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(),
@@ -41,109 +88,19 @@ class OtpVerificationscreen extends StatelessWidget {
             const SizedBox(
               height: 80,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  height: 55,
-                  width: 55,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 1,
-                      )),
-                  child: TextFormField(
-                    maxLength: 1,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    controller: _controller,
-                    style: const TextStyle(fontSize: 20),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      counterText: '',
-                    ),
-                  ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: TextFormField(
+                controller: _otpController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                decoration: InputDecoration(
+                  hintText: 'Enter 6-digit OTP',
+                  counterText: '',
                 ),
-                SizedBox(
-                  width: 13,
-                ),
-                Container(
-                  height: 55,
-                  width: 55,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 1,
-                      )),
-                  child: TextFormField(
-                    maxLength: 1,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    controller: _controller2,
-                    style: const TextStyle(fontSize: 20),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      counterText: '',
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 13,
-                ),
-                Container(
-                  height: 55,
-                  width: 55,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 1,
-                      )),
-                  child: TextFormField(
-                    maxLength: 1,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    controller: _controller3,
-                    style: const TextStyle(fontSize: 20),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      counterText: '',
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 13,
-                ),
-                Container(
-                  height: 55,
-                  width: 55,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 1,
-                      )),
-                  child: TextFormField(
-                    maxLength: 1,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    controller: _controller4,
-                    style: const TextStyle(fontSize: 20),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      counterText: '',
-                      contentPadding: EdgeInsets.zero,
-                      isDense: false,
-                    ),
-                  ),
-                ),
-              ],
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 20),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(right: 45.0),
@@ -165,7 +122,46 @@ class OtpVerificationscreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 60),
               child: Align(
                   alignment: Alignment.bottomCenter,
-                  child: Button(text: 'Verify')),
+                  child: Button(
+                    text: 'Verify',
+                    onPressed: () async {
+                      if (_otpController.text.length != 6) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Please enter a valid 6-digit OTP')),
+                        );
+                        return;
+                      } else {
+                        try {
+                          PhoneAuthCredential credential =
+                              PhoneAuthProvider.credential(
+                            verificationId: widget.otp,
+                            smsCode: _otpController.text.trim(),
+                          );
+                          UserCredential userCredential = await FirebaseAuth
+                              .instance
+                              .signInWithCredential(credential);
+                          User? user = userCredential.user;
+                          if (user != null) {
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(user.uid)
+                                .set({'phone': widget.number});
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        PermissionRequestScreen()));
+                          }
+                        } on FirebaseAuthException catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: ${e.message}')),
+                          );
+                        }
+                      }
+                    },
+                  )),
             ),
           ],
         ),

@@ -1,3 +1,5 @@
+import 'package:blinktrack/screens/loginscreen.dart';
+import 'package:blinktrack/screens/signupscreen.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -45,7 +47,12 @@ class Welcomescreen extends StatelessWidget {
               width: 290,
               height: 50,
               child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Signupscreen()));
+                  },
                   child: const Text(
                     'Get Started',
                     style: TextStyle(fontSize: 17),
@@ -71,9 +78,14 @@ class Welcomescreen extends StatelessWidget {
                     style: TextStyle(color: Colors.white),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Loginscreen()));
+                    },
                     child:
-                        Text('Sign up', style: TextStyle(color: Colors.white)),
+                        Text('Sign in', style: TextStyle(color: Colors.white)),
                   )
                 ],
               ),
