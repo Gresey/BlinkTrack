@@ -5,6 +5,10 @@ import 'package:blinktrack/screens/settings.dart';
 import 'package:blinktrack/screens/sosscreen.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:path/path.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Mapscreen extends StatefulWidget {
   const Mapscreen({super.key});
@@ -17,6 +21,42 @@ var _selectedIndex = 0;
 String? _selectedValue;
 
 class _MapscreenState extends State<Mapscreen> {
+  static const LatLng _pGooglePlex = LatLng(37.4223, -122.0848);
+  static const LatLng _pApplePlex = LatLng(37.4223, -122.0849);
+  LatLng? _currentP = null;
+  Position? position;
+
+  @override
+  void initState() {
+    super.initState();
+    getLocationUpdates();
+  }
+
+  Future<void> getLocationUpdates() async {
+    bool _serviceEnabled;
+    LocationPermission locationPermission;
+
+    _serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!_serviceEnabled) {
+      Fluttertoast.showToast(msg: 'Location Sevice is denied');
+    }
+    locationPermission = await Geolocator.checkPermission();
+    if (locationPermission == LocationPermission.denied) {
+      locationPermission = await Geolocator.requestPermission();
+      if (locationPermission == LocationPermission.denied) {
+        Fluttertoast.showToast(msg: 'You denied the permission');
+      }
+    }
+    if (locationPermission == LocationPermission.deniedForever) {
+      Fluttertoast.showToast(msg: 'You denied the permission forever');
+    }
+    Position currentPosition = await Geolocator.getCurrentPosition();
+    setState(() {
+      position = currentPosition;
+      print("Current Location ${position}");
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,8 +66,25 @@ class _MapscreenState extends State<Mapscreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Container(
-              height: 600,
+            SingleChildScrollView(
+              child: SizedBox(
+                  height: 700,
+                  child: GoogleMap(
+                    // mapType: MapType.normal,
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(22.123723, 75.609408),
+                      //    position?.latitude ?? 0, position?.longitude ?? 0),
+                      zoom: 14,
+                    ),
+                    markers: {
+                      Marker(
+                        markerId: MarkerId("_sourceLocation"),
+                        icon: BitmapDescriptor.defaultMarker,
+                        position: LatLng(
+                            position?.latitude ?? 0, position?.longitude ?? 0),
+                      ),
+                    },
+                  )),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
