@@ -1,5 +1,6 @@
 import 'package:blinktrack/screens/components/appbar.dart';
 import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/screens/createjoinscreen.dart';
 import 'package:blinktrack/screens/mapScreen.dart';
 import 'package:blinktrack/screens/otp_verificationscreen.dart';
 import 'package:blinktrack/theme.dart';
@@ -127,7 +128,7 @@ class _LoginscreenState extends State<Loginscreen> {
                             Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => Mapscreen()));
+                                    builder: (context) => JoinCreateCircle()));
                           }
                         } on FirebaseAuthException catch (err) {
                           ScaffoldMessenger.of(context).showSnackBar(

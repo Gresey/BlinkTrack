@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BlinkTrack',
-      home: PermissionRequestScreen(),
+      home: Splashscreen(),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/screens/createjoinscreen.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:path/path.dart';
 
 class AddProfileScreen extends StatefulWidget {
   const AddProfileScreen({super.key});
@@ -20,6 +23,7 @@ class AddProfileScreen extends StatefulWidget {
 class _AddProfileScreenState extends State<AddProfileScreen> {
   bool _camerapermission = false;
   File? _profileImage;
+  TextEditingController _name = TextEditingController();
 
   Future<void> pickImagefromGallery() async {
     final pickedFile =
@@ -27,15 +31,72 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);
+        //  uploadFile();
       });
     }
   }
 
-  Future<void> saveImageToDatabase() async {}
+  Future uploadFile() async {
+    if (_profileImage == null) return;
+    final fileName = basename(_profileImage!.path);
+    final destination = 'files/$fileName';
+
+    try {
+      final ref = firebase_storage.FirebaseStorage.instance
+          .ref(destination)
+          .child('file/');
+      await ref.putFile(_profileImage!);
+    } catch (e) {
+      print('error occured');
+    }
+  }
+
+  Future<void> saveImageToDatabase() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final name = _name.text.trim();
+
+    if (user == null || name.isEmpty) {
+      Fluttertoast.showToast(
+          msg: 'Please enter your name and ensure you are logged in.');
+      return;
+    }
+
+    try {
+      String? imageUrl;
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'name': name,
+        'phone': user.phoneNumber,
+        // 'profilePicture': imageUrl ?? '',
+        'locationSharing': true,
+        'lastActive': FieldValue.serverTimestamp(),
+      });
+      // if (_profileImage != null) {
+      //   final fileName = basename(_profileImage!.path);
+      //   final destination = 'profile_images/$fileName';
+
+      //   final ref = firebase_storage.FirebaseStorage.instance.ref(destination);
+      //   await ref.putFile(_profileImage!);
+
+      //   imageUrl = await ref.getDownloadURL();
+      // }
+
+      // await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      //   'name': name,
+      //   'phone': user.phoneNumber,
+      //   'profilePicture': imageUrl ?? '',
+      //   'locationSharing': true,
+      //   'lastActive': FieldValue.serverTimestamp(),
+      // });
+
+      Fluttertoast.showToast(msg: 'Profile saved successfully!');
+      //Navigator.pop(); // or navigate to home/dashboard
+    } catch (e) {
+      Fluttertoast.showToast(msg: 'Error saving profile: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController _name = TextEditingController();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -148,7 +209,13 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
               alignment: Alignment.bottomCenter,
               child: Button(
                 text: 'Done',
-                onPressed: saveImageToDatabase,
+                onPressed: () {
+                  saveImageToDatabase();
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => JoinCreateCircle()));
+                },
               ),
             ),
           )

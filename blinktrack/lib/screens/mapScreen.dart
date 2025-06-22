@@ -4,6 +4,8 @@ import 'package:blinktrack/screens/components/button.dart';
 import 'package:blinktrack/screens/settings.dart';
 import 'package:blinktrack/screens/sosscreen.dart';
 import 'package:blinktrack/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -54,6 +56,15 @@ class _MapscreenState extends State<Mapscreen> {
     setState(() {
       position = currentPosition;
       print("Current Location ${position}");
+    });
+    final user = FirebaseAuth.instance.currentUser;
+    final circleid = '123';
+    await FirebaseDatabase.instance
+        .ref('circles/$circleid/members/$user.id')
+        .update({
+      'lat': currentPosition.latitude,
+      'long': currentPosition.longitude,
+      'timestamp': ServerValue.timestamp,
     });
   }
 
