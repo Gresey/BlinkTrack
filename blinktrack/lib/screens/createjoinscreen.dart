@@ -1,3 +1,4 @@
+import 'package:blinktrack/providers/user_provider.dart';
 import 'package:blinktrack/screens/components/appbar.dart';
 import 'package:blinktrack/screens/components/button.dart';
 import 'package:blinktrack/screens/mapScreen.dart';
@@ -7,21 +8,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 
 import 'package:fluttertoast/fluttertoast.dart';
 
-class JoinCreateCircle extends StatefulWidget {
+class JoinCreateCircle extends ConsumerStatefulWidget {
   const JoinCreateCircle({super.key});
 
   @override
-  State<JoinCreateCircle> createState() => _JoinCreateCircleState();
+  ConsumerState<JoinCreateCircle> createState() => _JoinCreateCircleState();
 }
 
-class _JoinCreateCircleState extends State<JoinCreateCircle> {
+class _JoinCreateCircleState extends ConsumerState<JoinCreateCircle> {
   final TextEditingController _joincode = TextEditingController();
   final TextEditingController _generatecode = TextEditingController();
   final TextEditingController _circlename = TextEditingController();
+  final user = FirebaseAuth.instance.currentUser;
 
   String generateInviteCode({int length = 6}) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -31,13 +34,11 @@ class _JoinCreateCircleState extends State<JoinCreateCircle> {
   }
 
   Future<void> saveCircleToDatabase() async {
-    final user = FirebaseAuth.instance.currentUser;
-
     if (user == null) {
       Fluttertoast.showToast(msg: 'Please ensure you are logged in.');
       return;
     }
-    print('user.uid: ${user.uid}');
+    print('user.uid: ${user?.uid}');
 
     final circleDoc = FirebaseFirestore.instance.collection('circles').doc();
     final circleId = circleDoc.id;
@@ -50,13 +51,54 @@ class _JoinCreateCircleState extends State<JoinCreateCircle> {
       'name': _circlename.text,
       'inviteCode': _generatecode.text,
       'createdAt': Timestamp.now(),
-      'ownerId': user.uid,
-      'members': [user.uid],
+      'ownerId': user?.uid,
+      'members': [user!.uid],
     });
 
-    await FirebaseFirestore.instance.collection("users").doc(user.uid).update({
-      "circles": circleId,
+    await FirebaseFirestore.instance.collection("users").doc(user?.uid).update({
+      "circles": FieldValue.arrayUnion([circleId]),
     });
+    // add circle details in which the current user is a member,to the userProvider
+    final provider = ref.read(userProvider.notifier);
+    final updatedCircleDetails =
+        Map<String, dynamic>.from(provider.state.circleDetails);
+    updatedCircleDetails[circleId] = _circlename.text;
+    provider.state =
+        provider.state.copyWith(circleDetails: updatedCircleDetails);
+    print('updatedCircleDetails: $updatedCircleDetails');
+  }
+
+  Future<void> joinCircle() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('circles')
+        .where('inviteCode', isEqualTo: _joincode.text)
+        .limit(1)
+        .get();
+    if (querySnapshot.docs.isNotEmpty) {
+      final circledoc = querySnapshot.docs.first;
+      await FirebaseFirestore.instance
+          .collection('circles')
+          .doc(circledoc.id)
+          .update({
+        'members': FieldValue.arrayUnion([user?.uid]),
+      });
+      final circlename = await FirebaseFirestore.instance
+          .collection('circles')
+          .doc(circledoc.id)
+          .get()
+          .then((value) => value.data()?['name'] ?? 'Unnamed Circle');
+      final provider = ref.read(userProvider.notifier);
+      final updatedCircleDetails =
+          Map<String, dynamic>.from(provider.state.circleDetails);
+      updatedCircleDetails[circledoc.id] = circlename;
+      provider.state =
+          provider.state.copyWith(circleDetails: updatedCircleDetails);
+      print('updatedCircleDetails: $updatedCircleDetails');
+    } else {
+      Fluttertoast.showToast(
+          msg: 'No existing circle for this invite code. Create a new circle.');
+      return;
+    }
   }
 
   @override
@@ -92,7 +134,7 @@ class _JoinCreateCircleState extends State<JoinCreateCircle> {
                 width: 260,
                 child: TextFormField(
                   controller: _joincode,
-                  keyboardType: TextInputType.phone,
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: 'Enter code',
                     hintStyle:
@@ -231,11 +273,14 @@ class _JoinCreateCircleState extends State<JoinCreateCircle> {
                 text: 'Continue',
                 onPressed: () async {
                   if (_joincode.text.isNotEmpty) {
+                    await joinCircle();
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => Mapscreen()));
                   } else if (_generatecode.text.isNotEmpty) {
                     await saveCircleToDatabase();
-                  } else {}
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => Mapscreen()));
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => Mapscreen()));
+                  }
                 },
               ),
             ),
