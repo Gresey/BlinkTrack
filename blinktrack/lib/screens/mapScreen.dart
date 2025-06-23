@@ -1,40 +1,57 @@
+import 'package:blinktrack/providers/user_provider.dart';
 import 'package:blinktrack/screens/circlemanage.dart';
 import 'package:blinktrack/screens/components/bottomnavigationbar.dart';
 import 'package:blinktrack/screens/components/button.dart';
 import 'package:blinktrack/screens/settings.dart';
 import 'package:blinktrack/screens/sosscreen.dart';
 import 'package:blinktrack/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:geolocator/geolocator.dart';
 
-class Mapscreen extends StatefulWidget {
+class Mapscreen extends ConsumerStatefulWidget {
   const Mapscreen({super.key});
 
   @override
-  State<Mapscreen> createState() => _MapscreenState();
+  ConsumerState<Mapscreen> createState() => _MapscreenConsumerState();
 }
 
 var _selectedIndex = 0;
 String? _selectedValue;
 
-class _MapscreenState extends State<Mapscreen> {
+class _MapscreenConsumerState extends ConsumerState<Mapscreen> {
   static const LatLng _pGooglePlex = LatLng(37.4223, -122.0848);
   static const LatLng _pApplePlex = LatLng(37.4223, -122.0849);
   LatLng? _currentP = null;
   Position? position;
+  Map<String, String> circles = {};
 
   @override
   void initState() {
     super.initState();
-    getLocationUpdates();
+    getCirclesDetails();
+    saveMyLocationUpdates();
   }
 
-  Future<void> getLocationUpdates() async {
+  // Future<void> getLocationUpdate(){
+
+  // }
+  void getCirclesDetails() {
+    final userprovd =
+        ref.read(userProvider.select((state) => state.circleDetails));
+    setState(() {
+      circles = Map<String, String>.from(userprovd);
+      print("Circles: $circles");
+    });
+  }
+
+  Future<void> saveMyLocationUpdates() async {
     bool _serviceEnabled;
     LocationPermission locationPermission;
 
@@ -58,14 +75,27 @@ class _MapscreenState extends State<Mapscreen> {
       print("Current Location ${position}");
     });
     final user = FirebaseAuth.instance.currentUser;
-    final circleid = '123';
-    await FirebaseDatabase.instance
-        .ref('circles/$circleid/members/$user.id')
-        .update({
-      'lat': currentPosition.latitude,
-      'long': currentPosition.longitude,
-      'timestamp': ServerValue.timestamp,
-    });
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user?.uid)
+        .get();
+    if (userDoc.exists) {
+      final data = userDoc.data();
+      final circles = data?['circles'];
+
+      if (circles != null && circles is List) {
+        for (var circleId in circles) {
+          final dbref = await FirebaseDatabase.instance;
+
+          dbref.ref('circles/$circleId/members/${user?.uid}').update({
+            'lat': currentPosition.latitude,
+            'long': currentPosition.longitude,
+            'timestamp': ServerValue.timestamp,
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -116,30 +146,31 @@ class _MapscreenState extends State<Mapscreen> {
                           ),
                         ),
                         iconEnabledColor: AppColors.primary,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Family',
-                            child: Text(
-                              'Family',
-                              style: TextStyle(
-                                  // fontSize: 22,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 19),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Home',
-                            child: Text(
-                              'Home',
-                              style: TextStyle(
-                                  //  fontSize: 22,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 19),
-                            ),
-                          ),
-                        ],
+                        items: circles.isNotEmpty
+                            ? circles.entries.map((circle) {
+                                return DropdownMenuItem<String>(
+                                  value: circle.key,
+                                  child: Text(
+                                    circle.value,
+                                    style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 19),
+                                  ),
+                                );
+                              }).toList()
+                            : const [
+                                DropdownMenuItem<String>(
+                                  value: 'no_circle',
+                                  child: Text(
+                                    'No Circle Available',
+                                    style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 19),
+                                  ),
+                                ),
+                              ],
                         onChanged: (value) {
                           setState(() => _selectedValue = value);
                         },
@@ -425,10 +456,10 @@ class _MapscreenState extends State<Mapscreen> {
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => SosScreen()));
                 break;
-              case 3:
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => Settings()));
-                break;
+              // case 3:
+              //   Navigator.pushReplacement(context,
+              //       MaterialPageRoute(builder: (context) => Settings()));
+              //   break;
             }
           }),
     );
