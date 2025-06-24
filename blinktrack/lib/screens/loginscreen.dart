@@ -110,26 +110,29 @@ class _LoginscreenState extends State<Loginscreen> {
                           SnackBar(content: Text("Enter your number")));
                       return;
                     } else {
-                      String number =
-                          _selectedCountryCode + (_number.text).trim();
+                      String number = (_number.text).trim();
                       if (number.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Enter your number")));
-                      } else if (number.length < 10) {
+                      } else if (number.length != 10) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Enter a valid number")));
                       } else {
                         try {
-                          var query = await FirebaseFirestore.instance
-                              .collection('users')
-                              .where('phone', isEqualTo: number)
-                              .get();
-                          if (query.docs.isNotEmpty) {
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => JoinCreateCircle()));
-                          }
+                          await FirebaseAuth.instance.verifyPhoneNumber(
+                              verificationCompleted: (credential) {},
+                              verificationFailed: (error) {},
+                              codeSent: (otp, token) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => OtpVerificationscreen(
+                                            otp: otp,
+                                            number:
+                                                "$_selectedCountryCode$number")));
+                              },
+                              codeAutoRetrievalTimeout: (otp) {},
+                              phoneNumber: "$_selectedCountryCode$number");
                         } on FirebaseAuthException catch (err) {
                           ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(err.code.toString())));

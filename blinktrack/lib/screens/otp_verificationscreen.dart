@@ -1,5 +1,6 @@
 import 'package:blinktrack/screens/components/appbar.dart';
 import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/screens/createjoinscreen.dart';
 import 'package:blinktrack/screens/permissionscreen.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -144,15 +145,26 @@ class _OtpVerificationscreenState extends State<OtpVerificationscreen> {
                               .signInWithCredential(credential);
                           User? user = userCredential.user;
                           if (user != null) {
-                            await FirebaseFirestore.instance
+                            final userdoc = await FirebaseFirestore.instance
                                 .collection('users')
                                 .doc(user.uid)
-                                .set({'phone': widget.number});
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        PermissionRequestScreen()));
+                                .get();
+                            if (userdoc.exists) {
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          JoinCreateCircle()));
+                            } else {
+                              await userdoc.reference
+                                  .set({'phone': widget.number});
+
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          PermissionRequestScreen()));
+                            }
                           }
                         } on FirebaseAuthException catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
