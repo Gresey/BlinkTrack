@@ -58,14 +58,6 @@ class _JoinCreateCircleState extends ConsumerState<JoinCreateCircle> {
     await FirebaseFirestore.instance.collection("users").doc(user?.uid).update({
       "circles": FieldValue.arrayUnion([circleId]),
     });
-    // add circle details in which the current user is a member,to the userProvider
-    final provider = ref.read(userProvider.notifier);
-    final updatedCircleDetails =
-        Map<String, dynamic>.from(provider.state.circleDetails);
-    updatedCircleDetails[circleId] = _circlename.text;
-    provider.state =
-        provider.state.copyWith(circleDetails: updatedCircleDetails);
-    print('updatedCircleDetails: $updatedCircleDetails');
   }
 
   Future<void> joinCircle() async {
@@ -82,22 +74,54 @@ class _JoinCreateCircleState extends ConsumerState<JoinCreateCircle> {
           .update({
         'members': FieldValue.arrayUnion([user?.uid]),
       });
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .update({
+        'circles': FieldValue.arrayUnion([circledoc.id])
+      });
       final circlename = await FirebaseFirestore.instance
           .collection('circles')
           .doc(circledoc.id)
           .get()
           .then((value) => value.data()?['name'] ?? 'Unnamed Circle');
-      final provider = ref.read(userProvider.notifier);
-      final updatedCircleDetails =
-          Map<String, dynamic>.from(provider.state.circleDetails);
-      updatedCircleDetails[circledoc.id] = circlename;
-      provider.state =
-          provider.state.copyWith(circleDetails: updatedCircleDetails);
-      print('updatedCircleDetails: $updatedCircleDetails');
     } else {
       Fluttertoast.showToast(
           msg: 'No existing circle for this invite code. Create a new circle.');
       return;
+    }
+  }
+
+  Future<void> fetchAllCircles() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      Fluttertoast.showToast(msg: 'User not logged in');
+      return;
+    }
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    if (querySnapshot.exists) {
+      final provider = ref.read(userProvider.notifier);
+      final updatedCircleDetails =
+          Map<String, dynamic>.from(provider.state.circleDetails);
+      final data = querySnapshot.data();
+      if (data != null && data['circles'] != null) {
+        final circles = List<String>.from(data['circles']);
+        for (var circleId in circles) {
+          final circleName = await FirebaseFirestore.instance
+              .collection('circles')
+              .doc(circleId)
+              .get()
+              .then((value) => value.data()?['name'] ?? 'Unnamed Circle');
+          updatedCircleDetails[circleId] = circleName;
+        }
+        provider.state =
+            provider.state.copyWith(circleDetails: updatedCircleDetails);
+        print('updatedCircleDetails: $updatedCircleDetails');
+      }
     }
   }
 
@@ -274,12 +298,19 @@ class _JoinCreateCircleState extends ConsumerState<JoinCreateCircle> {
                 onPressed: () async {
                   if (_joincode.text.isNotEmpty) {
                     await joinCircle();
+                    await fetchAllCircles();
+                    Fluttertoast.showToast(msg: 'Circle joined successfully');
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => Mapscreen()));
                   } else if (_generatecode.text.isNotEmpty) {
                     await saveCircleToDatabase();
+                    await fetchAllCircles();
+                    Fluttertoast.showToast(msg: 'Circle created successfully');
+
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => Mapscreen()));
+                  } else {
+                    Fluttertoast.showToast(msg: 'Enter any value');
                   }
                 },
               ),
