@@ -8,6 +8,7 @@ import 'package:blinktrack/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -31,6 +32,7 @@ class _MapscreenConsumerState extends ConsumerState<Mapscreen> {
   LatLng? _currentP = null;
   Position? position;
   Map<String, String> circles = {};
+  Map<String, dynamic> membersInCircle = {};
 
   @override
   void initState() {
@@ -39,9 +41,29 @@ class _MapscreenConsumerState extends ConsumerState<Mapscreen> {
     saveMyLocationUpdates();
   }
 
-  // Future<void> getLocationUpdate(){
+  Future<void> getLocationUpdate() async {
+    if (_selectedValue != 'no_circle') {
+      final circleref =
+          FirebaseDatabase.instance.ref('circles/$_selectedValue/members');
+      circleref.onValue.listen((DatabaseEvent event) {
+        final rawData = event.snapshot.value;
+        if (rawData == null) {
+          Fluttertoast.showToast(msg: 'no users in the circle');
+          setState(() {
+            membersInCircle = {};
+          });
+          return;
+        }
 
-  // }
+        final data = Map<String, dynamic>.from(rawData as Map);
+        print("Members in Circle: $data");
+        setState(() {
+          membersInCircle = data;
+        });
+      });
+    }
+  }
+
   void getCirclesDetails() {
     final userprovd =
         ref.read(userProvider.select((state) => state.circleDetails));
@@ -111,21 +133,41 @@ class _MapscreenConsumerState extends ConsumerState<Mapscreen> {
               child: SizedBox(
                   height: 700,
                   child: GoogleMap(
-                    // mapType: MapType.normal,
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(22.123723, 75.609408),
-                      //    position?.latitude ?? 0, position?.longitude ?? 0),
-                      zoom: 14,
-                    ),
-                    markers: {
-                      Marker(
-                        markerId: MarkerId("_sourceLocation"),
-                        icon: BitmapDescriptor.defaultMarker,
-                        position: LatLng(
-                            position?.latitude ?? 0, position?.longitude ?? 0),
+                      // mapType: MapType.normal,
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(22.123723, 75.609408),
+                        //    position?.latitude ?? 0, position?.longitude ?? 0),
                       ),
-                    },
-                  )),
+                      // markers: {
+                      //   Marker(
+                      //     markerId: MarkerId("_sourceLocation"),
+                      //     icon: BitmapDescriptor.defaultMarker,
+                      //     position: LatLng(
+                      //         position?.latitude ?? 0, position?.longitude ?? 0),
+                      //   ),
+                      // },
+                      markers: membersInCircle.isNotEmpty
+                          ? membersInCircle.entries.map((member) {
+                              final lat = double.tryParse(
+                                      member.value['lat']?.toString() ?? '') ??
+                                  0;
+                              final long = double.tryParse(
+                                      member.value['long']?.toString() ?? '') ??
+                                  0;
+                              return Marker(
+                                markerId: MarkerId(member.key),
+                                icon: BitmapDescriptor.defaultMarker,
+                                position: LatLng(lat, long),
+                              );
+                            }).toSet()
+                          : {
+                              Marker(
+                                markerId: MarkerId("_sourceLocation"),
+                                icon: BitmapDescriptor.defaultMarker,
+                                position: LatLng(position?.latitude ?? 0,
+                                    position?.longitude ?? 0),
+                              )
+                            })),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -171,8 +213,11 @@ class _MapscreenConsumerState extends ConsumerState<Mapscreen> {
                                   ),
                                 ),
                               ],
-                        onChanged: (value) {
-                          setState(() => _selectedValue = value);
+                        onChanged: (value) async {
+                          setState(() {
+                            _selectedValue = value;
+                          });
+                          await getLocationUpdate();
                         },
                       ),
                     ),
