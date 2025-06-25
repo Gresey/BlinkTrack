@@ -1,7 +1,7 @@
 import 'package:blinktrack/providers/user_provider.dart';
 import 'package:blinktrack/screens/circlemanage.dart';
-import 'package:blinktrack/screens/components/bottomnavigationbar.dart';
-import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/components/bottomnavigationbar.dart';
+import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/settings.dart';
 import 'package:blinktrack/screens/sosscreen.dart';
 import 'package:blinktrack/theme.dart';

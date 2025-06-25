@@ -1,6 +1,6 @@
-import 'package:blinktrack/screens/components/appbar.dart';
-import 'package:blinktrack/screens/components/bottomnavigationbar.dart';
-import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/components/appbar.dart';
+import 'package:blinktrack/components/bottomnavigationbar.dart';
+import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/mapScreen.dart';
 import 'package:blinktrack/screens/settings.dart';
 import 'package:blinktrack/screens/sosscreen.dart';

@@ -1,5 +1,5 @@
-import 'package:blinktrack/screens/components/appbar.dart';
-import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/components/appbar.dart';
+import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/otp_verificationscreen.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:country_code_picker/country_code_picker.dart';

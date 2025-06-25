@@ -1,5 +1,5 @@
 import 'package:blinktrack/screens/addprofilescreen.dart';
-import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';

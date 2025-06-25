@@ -1,5 +1,5 @@
 import 'package:blinktrack/screens/circlemanage.dart';
-import 'package:blinktrack/screens/components/bottomnavigationbar.dart';
+import 'package:blinktrack/components/bottomnavigationbar.dart';
 import 'package:blinktrack/screens/mapScreen.dart';
 import 'package:blinktrack/screens/sosscreen.dart';
 import 'package:blinktrack/theme.dart';

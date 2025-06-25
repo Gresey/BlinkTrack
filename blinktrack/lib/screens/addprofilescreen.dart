@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/createjoinscreen.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
