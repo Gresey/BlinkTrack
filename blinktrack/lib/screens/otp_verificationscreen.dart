@@ -1,7 +1,9 @@
-import 'package:blinktrack/screens/components/appbar.dart';
-import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/components/appbar.dart';
+import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/createjoinscreen.dart';
+import 'package:blinktrack/screens/mapScreen.dart';
 import 'package:blinktrack/screens/permissionscreen.dart';
+import 'package:blinktrack/services/preference_service.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -149,12 +151,12 @@ class _OtpVerificationscreenState extends State<OtpVerificationscreen> {
                                 .collection('users')
                                 .doc(user.uid)
                                 .get();
+                            await PreferenceService.setUserLogin();
                             if (userdoc.exists) {
                               Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) =>
-                                          JoinCreateCircle()));
+                                      builder: (context) => Mapscreen()));
                             } else {
                               await userdoc.reference
                                   .set({'phone': widget.number});
