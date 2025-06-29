@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "359649560707",
+    "firebase_url": "https://blinktrack-default-rtdb.firebaseio.com",
     "project_id": "blinktrack",
     "storage_bucket": "blinktrack.firebasestorage.app"
   },

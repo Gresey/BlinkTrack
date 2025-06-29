@@ -3,8 +3,12 @@ import 'package:blinktrack/components/bottomnavigationbar.dart';
 import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/mapScreen.dart';
 import 'package:blinktrack/screens/settings.dart';
+import 'package:blinktrack/services/fcm_service.dart';
+import 'package:blinktrack/services/notification_service.dart';
 import 'package:blinktrack/theme.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart';
 
 class SosScreen extends StatefulWidget {
   const SosScreen({super.key});
@@ -15,6 +19,19 @@ class SosScreen extends StatefulWidget {
 
 class _SosScreenState extends State<SosScreen> {
   int _selectedIndex = 2;
+  NotificationServices notificationServices = NotificationServices();
+  @override
+  void initState() {
+    super.initState();
+    notificationServices.requestnotificationPermission();
+    notificationServices.firebaseInit(context);
+    //  notificationServices.isTokenRefresh();
+    notificationServices.getDeviceToken().then((value) {
+      print('device token');
+      print(value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,23 +95,25 @@ class _SosScreenState extends State<SosScreen> {
             SizedBox(
               height: 60,
             ),
-            Container(
-              height: 170,
-              width: 170,
-              decoration: BoxDecoration(
-                // borderRadius: BorderRadius.circular(20),
-                color: Colors.redAccent,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center, // Center the child
+            InkWell(
+              child: Container(
+                height: 170,
+                width: 170,
+                decoration: BoxDecoration(
+                  // borderRadius: BorderRadius.circular(20),
+                  color: Colors.redAccent,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center, // Center the child
 
-              child: Text(
-                'SOS button',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+                child: Text(
+                  'SOS button',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ],
