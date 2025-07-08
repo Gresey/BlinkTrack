@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:blinktrack/screens/circlemanage.dart';
 import 'package:blinktrack/components/bottomnavigationbar.dart';
 import 'package:blinktrack/components/button.dart';
@@ -9,6 +11,7 @@ import 'package:blinktrack/theme.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:http/http.dart' as http;
 
 class SosScreen extends StatefulWidget {
   const SosScreen({super.key});
@@ -96,6 +99,25 @@ class _SosScreenState extends State<SosScreen> {
               height: 60,
             ),
             InkWell(
+              onTap: () {
+                notificationServices.getDeviceToken().then((value) async {
+                  var data = {
+                    'to':
+                        'dKQCTHO4Q_ulUzGfcegrsF:APA91bGCpKxYKNG3c4fqb7uD1HQ2qtrON05HCfu77NpxVs1AH0s7vcs8T3exa7uEZaT5rpHSEamrf5BNvFd_x9lHlxtMMU5e0j9rIeCpo_BPtmSYq7AYbwY',
+                    'priority': 'high',
+                    'notification': {'title': 'Gracy', 'body': 'Emergency'},
+                    'data': {'name': 'Gresey', 'message': 'sos alert'}
+                  };
+                  await http.post(
+                      Uri.parse('https://fcm.googleapis.com/fcm/send'),
+                      body: jsonEncode(data),
+                      headers: {
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Authorization':
+                            'key=89e22bec644a8d6c3c17d9872505d166cc7b0bb6'
+                      });
+                });
+              },
               child: Container(
                 height: 170,
                 width: 170,

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/createjoinscreen.dart';
 import 'package:blinktrack/theme.dart';
@@ -9,7 +8,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path/path.dart';
 

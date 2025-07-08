@@ -1,6 +1,6 @@
 import 'package:blinktrack/providers/user_provider.dart';
-import 'package:blinktrack/screens/components/appbar.dart';
-import 'package:blinktrack/screens/components/button.dart';
+import 'package:blinktrack/components/appbar.dart';
+import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/mapScreen.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -98,7 +98,6 @@ class _JoinCreateCircleState extends ConsumerState<JoinCreateCircle> {
       Fluttertoast.showToast(msg: 'User not logged in');
       return;
     }
-
     final querySnapshot = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
@@ -298,13 +297,13 @@ class _JoinCreateCircleState extends ConsumerState<JoinCreateCircle> {
                 onPressed: () async {
                   if (_joincode.text.isNotEmpty) {
                     await joinCircle();
-                    await fetchAllCircles();
+                    //   await fetchAllCircles();
                     Fluttertoast.showToast(msg: 'Circle joined successfully');
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => Mapscreen()));
                   } else if (_generatecode.text.isNotEmpty) {
                     await saveCircleToDatabase();
-                    await fetchAllCircles();
+                    //s await fetchAllCircles();
                     Fluttertoast.showToast(msg: 'Circle created successfully');
 
                     Navigator.pushReplacement(context,

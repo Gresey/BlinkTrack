@@ -4,6 +4,7 @@ import 'package:blinktrack/components/bottomnavigationbar.dart';
 import 'package:blinktrack/components/button.dart';
 import 'package:blinktrack/screens/settings.dart';
 import 'package:blinktrack/screens/sosscreen.dart';
+import 'package:blinktrack/services/user_service.dart';
 import 'package:blinktrack/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,7 +18,8 @@ import 'package:path/path.dart';
 import 'package:geolocator/geolocator.dart';
 
 class Mapscreen extends ConsumerStatefulWidget {
-  const Mapscreen({super.key});
+  final String? userid;
+  const Mapscreen({super.key, this.userid});
 
   @override
   ConsumerState<Mapscreen> createState() => _MapscreenConsumerState();
@@ -64,7 +66,8 @@ class _MapscreenConsumerState extends ConsumerState<Mapscreen> {
     }
   }
 
-  void getCirclesDetails() {
+  void getCirclesDetails() async {
+    await UserService.loadUserData(ref);
     final userprovd =
         ref.read(userProvider.select((state) => state.circleDetails));
     setState(() {
